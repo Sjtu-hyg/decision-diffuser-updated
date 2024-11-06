@@ -109,7 +109,7 @@ class TemporalUnet(nn.Module):
     def __init__(
         self,
         horizon,
-        transition_dim,
+        transition_dim, #transition_dim=observation_dim,
         cond_dim,
         dim=128,
         dim_mults=(1, 2, 4, 8),

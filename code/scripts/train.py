@@ -179,7 +179,7 @@ def main(**deps):
         #t1= time()
         #print("\n\nhiii\n\n")
         logger.print(f'Epoch {i} / {n_epochs} | {logger.prefix}')
-        trainer.train(n_train_steps=Config.n_steps_per_epoch)
+        trainer.train(n_train_steps=Config.n_steps_per_epoch) #utils.Trainer.train 在training.py中line 132
         #print("\n\n\ntime: ", time() - t1, "\n\n\n")
 
 if __name__ == "__main__":

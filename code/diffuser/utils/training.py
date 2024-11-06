@@ -129,7 +129,7 @@ class Trainer(object):
             for i in range(self.gradient_accumulate_every):
                 batch = next(self.dataloader)
                 batch = batch_to_device(batch, device=self.device)
-                loss, infos = self.model.loss(*batch)
+                loss, infos = self.model.loss(*batch) #model 是 diffusion model 在diffusion.py中 注意是class GaussianInvDynDiffusion(nn.Module):类
                 loss = loss / self.gradient_accumulate_every
                 loss.backward()
 

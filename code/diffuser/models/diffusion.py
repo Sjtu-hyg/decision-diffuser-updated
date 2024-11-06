@@ -469,7 +469,7 @@ class GaussianInvDynDiffusion(nn.Module):
         return self.p_sample_loop(shape, cond, returns, *args, **kwargs)
     #------------------------------------------ training ------------------------------------------#
 
-    def q_sample(self, x_start, t, noise=None):
+    def q_sample(self, x_start, t, noise=None): #加噪过程
         if noise is None:
             noise = torch.randn_like(x_start)
 
@@ -483,8 +483,8 @@ class GaussianInvDynDiffusion(nn.Module):
     def p_losses(self, x_start, cond, t, returns=None):
         noise = torch.randn_like(x_start)
 
-        x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
-        x_noisy = apply_conditioning(x_noisy, cond, 0)
+        x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise) #加噪
+        x_noisy = apply_conditioning(x_noisy, cond, 0) #加条件
 
         x_recon = self.model(x_noisy, cond, t, returns)
 
