@@ -377,7 +377,7 @@ class GaussianInvDynDiffusion(nn.Module):
 
     #------------------------------------------ sampling ------------------------------------------#
 
-    def predict_start_from_noise(self, x_t, t, noise):
+    def predict_start_from_noise(self, x_t, t, noise):#4
         '''
             if self.predict_epsilon, model output is (scaled) noise;
             otherwise, model predicts x0 directly
@@ -390,7 +390,7 @@ class GaussianInvDynDiffusion(nn.Module):
         else:
             return noise
 
-    def q_posterior(self, x_start, x_t, t):
+    def q_posterior(self, x_start, x_t, t): #5 q_posterior 计算的是从扩散过程中的时间步 t 到前一时刻（t-1）的后验分布 q(x_{t-1} | x_t, x_0)
         posterior_mean = (
             extract(self.posterior_mean_coef1, t, x_t.shape) * x_start +
             extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
@@ -399,7 +399,7 @@ class GaussianInvDynDiffusion(nn.Module):
         posterior_log_variance_clipped = extract(self.posterior_log_variance_clipped, t, x_t.shape)
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
-    def p_mean_variance(self, x, cond, t, returns=None):
+    def p_mean_variance(self, x, cond, t, returns=None): #3在Model的输出中加入引导
         if self.returns_condition:
             # epsilon could be epsilon or x0 itself
             epsilon_cond = self.model(x, cond, t, returns, use_dropout=False)
@@ -421,7 +421,7 @@ class GaussianInvDynDiffusion(nn.Module):
         return model_mean, posterior_variance, posterior_log_variance
 
     @torch.no_grad()
-    def p_sample(self, x, cond, t, returns=None):
+    def p_sample(self, x, cond, t, returns=None): #2 得到q(x_{t-1} | x_t, x_0)进行采样得到x_t-1
         b, *_, device = *x.shape, x.device
         model_mean, _, model_log_variance = self.p_mean_variance(x=x, cond=cond, t=t, returns=returns)
         noise = 0.5*torch.randn_like(x)
@@ -430,7 +430,7 @@ class GaussianInvDynDiffusion(nn.Module):
         return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
 
     @torch.no_grad()
-    def p_sample_loop(self, shape, cond, returns=None, verbose=True, return_diffusion=False):
+    def p_sample_loop(self, shape, cond, returns=None, verbose=True, return_diffusion=False):#1
         device = self.betas.device
 
         batch_size = shape[0]
@@ -442,7 +442,7 @@ class GaussianInvDynDiffusion(nn.Module):
         progress = utils.Progress(self.n_timesteps) if verbose else utils.Silent()
         for i in reversed(range(0, self.n_timesteps)):
             timesteps = torch.full((batch_size,), i, device=device, dtype=torch.long)
-            x = self.p_sample(x, cond, timesteps, returns)
+            x = self.p_sample(x, cond, timesteps, returns)#2循环采样
             x = apply_conditioning(x, cond, 0)
 
             progress.update({'t': i})
@@ -457,7 +457,7 @@ class GaussianInvDynDiffusion(nn.Module):
             return x
 
     @torch.no_grad()
-    def conditional_sample(self, cond, returns=None, horizon=None, *args, **kwargs):
+    def conditional_sample(self, cond, returns=None, horizon=None, *args, **kwargs):#0
         '''
             conditions : [ (time, state), ... ]
         '''
@@ -727,7 +727,7 @@ class ActionGaussianDiffusion(nn.Module):
         return model_mean + nonzero_mask * (0.5 * model_log_variance).exp() * noise
 
     @torch.no_grad()
-    def p_sample_loop(self, shape, cond, returns=None, verbose=True, return_diffusion=False):
+    def p_sample_loop(self, shape, cond, returns=None, verbose=True, return_diffusion=False):#1
         device = self.betas.device
 
         batch_size = shape[0]
@@ -738,7 +738,7 @@ class ActionGaussianDiffusion(nn.Module):
         progress = utils.Progress(self.n_timesteps) if verbose else utils.Silent()
         for i in reversed(range(0, self.n_timesteps)):
             timesteps = torch.full((batch_size,), i, device=device, dtype=torch.long)
-            x = self.p_sample(x, cond, timesteps, returns)
+            x = self.p_sample(x, cond, timesteps, returns) #2循环采样
 
             progress.update({'t': i})
 
@@ -752,7 +752,7 @@ class ActionGaussianDiffusion(nn.Module):
             return x
 
     @torch.no_grad()
-    def conditional_sample(self, cond, returns=None, *args, **kwargs):
+    def conditional_sample(self, cond, returns=None, *args, **kwargs): #0
         '''
             conditions : [ (time, state), ... ]
         '''
